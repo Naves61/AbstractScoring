@@ -1,0 +1,13 @@
+{
+  "target_description": "Example description of relevant abstract",
+  "weights": {
+    "semantic": 0.5,
+    "keyword": 0.4,
+    "cohort": 0.1
+  },
+  "keyword_weights": {
+    "\\bexample\\b": 5
+  },
+  "cohort_bonus": 10,
+  "case_penalty": -10
+}
