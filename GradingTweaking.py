@@ -1,8 +1,3 @@
-"""Tools for tuning grading parameters using Monte Carlo optimisation."""
-
-from pathlib import Path
-import argparse
-
 import pandas as pd
 import json
 import re
@@ -15,15 +10,13 @@ from sentence_transformers import SentenceTransformer
 # ------------------------
 # CONFIG FILE HANDLING
 # ------------------------
-def load_config(path: Path):
-    """Load configuration from *path*."""
-    with path.open("r", encoding="utf-8") as f:
+def load_config(path):
+    with open(path, 'r') as f:
         return json.load(f)
 
 
-def save_config(config, path: Path):
-    """Persist *config* to *path* in JSON format."""
-    with path.open("w", encoding="utf-8") as f:
+def save_config(config, path):
+    with open(path, 'w') as f:
         json.dump(config, f, indent=4)
 
 # ------------------------
@@ -341,20 +334,9 @@ def process_error(error_entry, config, included_abstracts, non_included_abstract
 # ------------------------
 # MAIN PIPELINE
 # ------------------------
-def pipeline_tuning(
-    input_file_path: Path,
-    output_file_path: Path,
-    max_outer_iterations: int = 20,
-    monte_carlo_iterations: int = 50,
-    base_tweak_factor: float = 0.1,
-    patience: int = 3,
-    master_patience: int = 5,
-    delimiter: str = ";",
-    config_path: Path = Path("config.json"),
-):
-    """Run the Monte Carlo tuning pipeline."""
-
-    config = load_config(config_path)
+def pipeline_tuning(input_file_path, output_file_path, max_outer_iterations=20, monte_carlo_iterations=50,
+                    base_tweak_factor=0.1, patience=3, master_patience=5, delimiter=";"):
+    config = load_config('config.json')
     df = pd.read_csv(input_file_path, delimiter=delimiter)
     df = df.dropna(subset=['INCLUDED'])
     df['INCLUDED'] = df['INCLUDED'].astype(int)
@@ -400,50 +382,22 @@ def pipeline_tuning(
             print("Perfect separation achieved!")
             break
 
-    save_config(config, config_path)
-    output_file_path.parent.mkdir(parents=True, exist_ok=True)
+    save_config(config, 'config.json')
     df.to_csv(output_file_path, index=False)
-    print(f"\nFinal configuration saved to {config_path}")
+    print("\nFinal configuration saved to config.json")
     print(f"Updated graded articles saved to '{output_file_path}'.")
     return config
 
+if __name__ == '__main__':
+    print("LOL")
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Tune grading parameters using a reference set of abstracts."
-    )
-    parser.add_argument("--input", type=Path, required=True, help="Input scored CSV file")
-    parser.add_argument("--output", type=Path, required=True, help="Output CSV file")
-    parser.add_argument(
-        "--config", type=Path, default=Path("config.json"), help="Configuration file to update"
-    )
-    parser.add_argument(
-        "--delimiter", type=str, default=",", help="CSV delimiter (default: ',')"
-    )
-    parser.add_argument("--max-outer", type=int, default=20, help="Max outer iterations")
-    parser.add_argument(
-        "--monte-carlo", type=int, default=50, help="Iterations for Monte Carlo tweaking"
-    )
-    parser.add_argument(
-        "--tweak-factor",
-        type=float,
-        default=0.1,
-        help="Base tweak factor for parameter perturbation",
-    )
-    parser.add_argument("--patience", type=int, default=3, help="Inner loop patience")
-    parser.add_argument(
-        "--master-patience", type=int, default=5, help="Outer loop patience"
-    )
+    # Example for calling whole process
 
-    args = parser.parse_args()
-    pipeline_tuning(
-        input_file_path=args.input,
-        output_file_path=args.output,
-        max_outer_iterations=args.max_outer,
-        monte_carlo_iterations=args.monte_carlo,
-        base_tweak_factor=args.tweak_factor,
-        patience=args.patience,
-        master_patience=args.master_patience,
-        delimiter=args.delimiter,
-        config_path=args.config,
-    )
+    # final_config = pipeline_tuning(
+    #    input_file_path='Articles/Scored_articles/scored_graded_articles1.csv',
+    #    output_file_path='graded_articles_updated.csv',
+    #    max_outer_iterations=20,
+    #    monte_carlo_iterations=50,
+    #    base_tweak_factor=0.1,
+    #    patience=3
+    #)
